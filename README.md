@@ -9,7 +9,7 @@ vladutils
 
 Introduction
 ------------------
-This is an assorted collection of functions and classes that are too general for any one of my repositories. For example, here we can find an API for reading and writing *.tif image data and parsing its metadata. YAMLDict is a subclass of addict.Dict that provides methods for loading and dumping to YAML files. A few snippets I've pilfered from the internet; where this is the case I've commented in the source.
+This is an assorted collection of functions and classes that are too general for any one of my repositories. For example, here we can find an API for reading and writing TIF image data and parsing its metadata. Another example is YAMLDict, which is a subclass of addict.Dict that provides methods for loading and dumping Python objects to YAML files. I use this to write configuration files or generate, edit and save metadata. A few snippets I've pilfered from the internet; where this is the case I've commented in the source.
 
 
 Instalation
