@@ -20,10 +20,15 @@ pip install git+https://github.com/MisterVladimir/vladutils/archive/0.1.tar.gz'
 Requirements
 ------------------
 numpy
+
 h5py
+
 addict
+
 ruamel.yaml
+
 cv2
+
 pytorch
 
 
