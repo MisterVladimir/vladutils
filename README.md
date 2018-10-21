@@ -14,22 +14,12 @@ This is an assorted collection of functions and classes that are too general for
 
 Instalation
 ------------------
-pip install git+https://github.com/MisterVladimir/vladutils/archive/0.1.tar.gz'
+Only installation from source is available right now.
 
 
 Requirements
 ------------------
-numpy
-
-h5py
-
-addict
-
-ruamel.yaml
-
-cv2
-
-pytorch
+numpy, h5py, addict, ruamel.yaml, cv2
 
 
 License
