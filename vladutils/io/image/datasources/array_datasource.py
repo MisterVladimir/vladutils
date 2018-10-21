@@ -23,16 +23,18 @@ import numpy as np
 from .base_datasource import FileDataSource
 
 
+# not tested
+# there are a few obvious bugs here
 class ArrayDataSource(FileDataSource):
     """
-    Wrapper around numpy.ndarray image data such that we can use existing
-    NestedDatasource objects to filter the final output data.
+    Wrapper around numpy.ndarray image data such that we can pass
+    them in to NestedDatasource constructor.
 
-    Arguments
-    -----------
-    datasource: numpy.ndarray
-    Image data, dimensions are channel, time, z-slice, x, y. If fewer than
-    5 dimensions are supplied, add dimensions.
+    Parameters
+    -------------
+    datasource : numpy.ndarray
+        Image data, dimensions are channel, time, z-slice, x, y. If fewer than
+        5 dimensions are supplied, add dimensions.
     """
     module_name = 'array_datasource'
 

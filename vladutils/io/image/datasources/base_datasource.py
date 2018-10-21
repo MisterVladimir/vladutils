@@ -29,38 +29,46 @@ from ....data_structures import IndexedDict
 
 class BaseImageRequest(IndexedDict):
     """
-    Used to request images from a Tiff DataSource. Call with the
-    C, T, Z, X, Y dimensions of the slice of the image we want.
+    This class is meant to be used in conjunction with FileDataSource
+    objects to return 2D or 3D images from a FileDataSource. Calling
+    BaseImageRequest with the C, T, Z, X, Y indices should return
+    parameters passed directly into the FileDataSource's 'request'
+    method.
 
-    Currently only 3-dimensional outputs are supported. That is,
-    only one of the arguments to self.__call__() may be a slice
-    object.
+    This is a dictionary-like object that
 
-    order: str
+        (1) stores the C, T, Z, X, and Y indices last retrieved from an
+            image;
+        (2) stores the dimension number of each of the above,
+            C, T, Z, X, and Y;
+        (3) offers convenient __setitem__ and __getitem__, as well as
+            the iloc() method for setting and getting multiple key/value
+            pairs with one call.
+
+    Currently only 3-dimensional outputs are supported. That is, only one of
+    the first three arguments to self.__call__() may be a slice object.
+
+    Parameters
+    -------------
+    order : str
         Concatenated string of image dimension order.
-    shape : iterable of length 5
-        Shape of each dimension in order CTZXY.
+
+    shape : iterable
+        Shape of each image dimension in the order CTZXY.
 
     Example
     ---------
-#    a 3-color image with 8 z slices, each slice 512x512
+    # a 3-color image with 8 z slices, each slice 512x512
     req = TiffImageRequest('TCZXY', 3, 1, 8, 512, 512)
     datasource = TiffDataSource(image_path, req)
 
-#    retrive image in the first channel, third timepoint, and all z slices
-#    call the datasource's request method with arguments in C, T, Z order
+    # retrive image in the first channel, third timepoint, and all z slices
+    # call the datasource's request method with arguments in C, T, Z order
     z_stack = datasource.request(0,2 , slice(None))
     """
     module_name = 'base_datasource'
 
     def __init__(self, order, *shape):
-        """
-        order : str
-        Listed in same order as mdh['DimensionOrder'], e.g. TZCYX
-
-        shape : iterable
-        Shape of data in CTZXY order.
-        """
         # default starting values
         super().__init__(zip('CTZXY', [0, 0, 0, slice(None), slice(None)]))
         # TODO: make sure shape is 5 units long; otherwise, add 1s
@@ -122,8 +130,9 @@ class NestedDataSource(IO):
 
     def __init__(self, data):
         super().__init__()
+        self.datasource = data
         # check that we have image data
-        if not self.__class__.has_file_source(data):
+        if not self.has_file_source(data):
             raise IOError('No image.')
 
     @staticmethod
@@ -135,7 +144,7 @@ class NestedDataSource(IO):
         if isinstance(ds, (FileDataSource, np.ndarray)):
             return True
         elif isinstance(ds, NestedDataSource):
-            return ds.has_source(ds)
+            return ds.has_file_source(ds.datasource)
         else:
             return False
 

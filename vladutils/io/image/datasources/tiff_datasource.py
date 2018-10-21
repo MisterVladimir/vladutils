@@ -38,8 +38,9 @@ class TiffImageRequest(BaseImageRequest):
         tif_shape = np.array([self.image_shape[k] for k in order])
 
         # the requested index, stored as values in self, rearranged to the
-        # DimensionOrder that the tiff image is in
+        # DimensionOrder that the underlying tiff image data is in
         index = self[order]
+        # which values in self are ints and which are slices
         from_ints = np.array([0 if isinstance(i, slice) else i
                               for i in index])[:, None]
 
@@ -51,29 +52,32 @@ class TiffImageRequest(BaseImageRequest):
             raise TypeError('Only one slice item may be present in the '
                             'request. {} were used.'.format(n_slice_objects))
         elif n_slice_objects == 0:
+            # C, T, Z are already all integers and can be passed to
+            # tifffile.TiffFile.asarray method.
             as_integers = from_ints
         else:
-            # convert slice objects to lists of integers
-            # where the index is an integer, leave array of zeros
+            # Convert slice objects to lists of integers.
+            # If already integer, repeat the integer. 
             slice_index = np.flatnonzero(is_slice)[0]
             sl = index[slice_index]
             sliced_dim_length = tif_shape[slice_index]
             start, stop, step = sl.indices(sliced_dim_length)
             length = (stop - start) // step
-            from_slices = [np.arange(*j.indices(i))
-                           if isinstance(j, slice)
-                           else np.zeros(length, int)
-                           for i, j in zip(tif_shape, index)]
-            from_slices = np.concatenate(from_slices).reshape((-1, length))
-            # replace all the zeros with indices passed in as integers
-            as_integers = from_ints + from_slices
+            from_slices = [
+                np.arange(start, stop, step) if isinstance(j, slice)
+                else np.full(length, j, int) for j in zip(index)]
+            as_integers = np.concatenate(from_slices).reshape((-1, length))
         # finally, identify the tif page data is in
         # throws ValueError if that CTZ combination is out of range
-        page_indices = np.ravel_multi_index(as_integers,
-                                            tif_shape, order='C')
+        page_indices = np.ravel_multi_index(as_integers, tif_shape)
         return page_indices
 
     def __call__(self, *ctzxy):
+        """
+        Returns the TiffPage index -- a list of indices if an argument is a
+        slice object -- corresponding to the desired C, T, Z indices of a
+        tiff image.
+        """
         # keep an old copy to roll back in case of errors
         old_indices = copy.copy(self['CTZXY'])
         if len(ctzxy) == 5:
@@ -97,21 +101,29 @@ class TiffImageRequest(BaseImageRequest):
 
 
 class TiffDataSource(FileDataSource):
-    module_name = 'tiff_datasource'
+    """
+    Reads a tiff file. Data corresponding to a given C, T, Z index can be
+    retrieved without the user necessarily knowing the order the C, T, Z
+    are stored in.
 
-    def __init__(self, path, request):
-        super().__init__()
-        self._request = request
-        self.datasource = tifffile.TiffFile(path)
+    Parameters
+    -----------
+    filename : str
+        Full filename of the tiff image.
 
-    def request(self, *ctzxy):
-        """
-        Arguments
-        -----------
-        request : ImageDataRequest or list
+    request : BaseImageRequest subclass or list
         Each item in the list is a slice or int corresponding to the
         (channel, time, axial position) in that order.
-        """
+    """
+
+    module_name = 'tiff_datasource'
+
+    def __init__(self, filename, request):
+        super().__init__()
+        self._request = request
+        self.datasource = tifffile.TiffFile(filename)
+
+    def request(self, *ctzxy):
         n, x, y = self._request(*ctzxy)
         im = self.datasource.asarray(key=n)
         if im.ndim == 2:

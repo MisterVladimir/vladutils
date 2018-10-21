@@ -32,19 +32,17 @@ class TransformedDataSource(NestedDataSource):
     datasource: NestedDataSource, FileDataSource
     Image data or 
 
-    output_size: numpy.ndarray
-    Optional. Shape of the output image. If parameter is left as 'same', do not
-    resize.
+    output_size : numpy.ndarray
+        Optional. Shape of the output image. If parameter is left as 'same',
+        do not resize.
 
-    random_crop: numpy.ndarray
-    Optional. If we want to take a random crop along the image's XY dimensions,
-    enter the shape of the cropped image. Cropping is done before the image is
-    resized.
+    random_crop : numpy.ndarray
+        Optional. If we want to take a random crop along the image's XY
+        dimensions, enter the shape of the cropped image. Cropping is done
+        before the image is resized.
     """
-
     def __init__(self, data, output_size='same', random_crop=None):
         super().__init__(data)
-        self.datasource = data.datasource
         self.output_size = output_size
         self.random_crop = random_crop
 
