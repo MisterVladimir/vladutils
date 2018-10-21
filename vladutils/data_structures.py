@@ -23,6 +23,7 @@ import sys
 from ruamel import yaml
 import numpy as np
 import copy
+from operator import xor
 
 from .iteration import isiterable
 
@@ -95,7 +96,7 @@ class IndexedDict(dict):
                            (False, False): self._set_with_int,
                            (False, True): self._set_with_slice}
 
-            if isiterable(keys) != isiterable(value):
+            if xor(isiterable(keys), isiterable(value)):
                 raise TypeError('Cannot set an iterable value with '
                                 'non-iterable key and vice versa.')
 

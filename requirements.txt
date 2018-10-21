@@ -3,4 +3,3 @@ h5py
 addict
 ruamel.yaml
 cv2
-pytorch
