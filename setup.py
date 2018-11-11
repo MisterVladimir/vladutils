@@ -34,7 +34,6 @@ def get_requirements():
 
 
 def create_extension(path_as_list, sources, module_name):
-    # def create_extension(name, sources):
     """
     """
     if platform == 'darwin':

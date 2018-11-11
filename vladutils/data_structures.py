@@ -28,6 +28,15 @@ from operator import xor
 from .iteration import isiterable
 
 
+def print_nested_dict(dic, depth=0, prepend='\t'):
+    for k, v in dic.items():
+        if hasattr(v, 'keys'):
+            print('{}{}'.format(depth * prepend, k))
+            print_nested_dict(v, depth + 1, prepend=prepend)
+        else:
+            print('{}{}: {}'.format(depth * prepend, k, v))
+
+
 class Dict(_Dict):
     @classmethod
     def flatten(cls, dic):
@@ -35,7 +44,7 @@ class Dict(_Dict):
         Returns the leaf dictionaries in the nested dictionary, 'dic'. If the value of a
         node is a dictionary whose value is (1) an iterable e.g. a list or
         tuple and (2) all items in the iterable are dictionaries, check
-        whether the dictionaries are leaves
+        whether the dictionaries are leaves.
         """
         def _flatten(_dic, _key):
             if isinstance(_dic, dict):

@@ -2,4 +2,4 @@ numpy
 h5py
 addict
 ruamel.yaml
-cv2
+opencv-python
