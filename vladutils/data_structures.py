@@ -18,12 +18,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from addict import Dict as _Dict
-import sys
-from ruamel import yaml
-import numpy as np
 import copy
+from addict import Dict as _Dict
 from operator import xor
+from collections import OrderedDict
 
 from .iteration import isiterable
 
@@ -68,7 +66,7 @@ class Dict(_Dict):
         return ret
 
 
-class IndexedDict(dict):
+class IndexedDict(OrderedDict):
     """
     Allows setting and getting keys/values by passing in the key index.
 
@@ -112,6 +110,40 @@ class IndexedDict(dict):
             method = method_dict[
                 (value is None, isiterable(keys) and isiterable(value))]
             return method(keys, value)
+
+
+class EnumDict(OrderedDict):
+    """
+    A dictionary whose keys are enumerations (enum.Flag). With the exception of
+    the __init__ procedure, __getitem__ and __setitem__ get and set key values
+    using the '&' operator.
+
+    Arguments
+    -----------
+    The constructor takes the same arguments as OrderedDict in the form of an
+    iterable of (key, value) tuples. Keyword arguments may also be used. With
+    Python >=3.6, the order of the keyword arguments is preserved.
+    """
+    def __init__(self, arg=None, **kwargs):
+        if arg is not None:
+            for k, v in arg:
+                super().__setitem__(k, v)
+        if kwargs:
+            for k, v in arg:
+                super().__setitem__(k, v)
+
+    def _mask_keys(self, flag):
+        mask = (bool(flag & k) for k in self)
+        return filter(lambda x: next(mask), self.keys())
+
+    def __getitem__(self, flag):
+        keys = self._mask_keys(flag)
+        return [super(EnumDict, self).__getitem__(k) for k in keys]
+
+    def __setitem__(self, flag, value):
+        keys = self._mask_keys(flag)
+        for k in keys:
+            super(EnumDict, self).__setitem__(k, value)
 
 
 class TrackedSet(set):
