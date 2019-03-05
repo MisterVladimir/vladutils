@@ -70,6 +70,8 @@ if __name__ == '__main__':
           ext_modules=ext,
           python_requires='>=3.6',
           install_requires=get_requirements(),
+          setup_requires=['pytest-runner'],
+          tests_require=["pytest"],
           include_package_data=True,
           author='Vladimir Shteyn',
           author_email='vladimir.shteyn@googlemail.com',

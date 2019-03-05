@@ -19,53 +19,56 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import copy
+import pytest
 from typing import Set
-import unittest
+
+from vladutils import data_structures as ds
 
 
-from .. import data_structures as ds
+ARG = ('first', 'second', 'third')
 
 
-class TrackedSetTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.compare_to: Set[str] = set(('first', 'second', 'third'))
-        self.li: ds.TrackedSet = ds.TrackedSet(self.compare_to)
+@pytest.fixture
+def test_set():
+    return set(ARG)
 
-    def test_add(self):
-        self.assertSetEqual(self.li, self.compare_to)
-        self.assertSetEqual(self.li.added, self.compare_to)
-        self.assertSetEqual(self.li.removed, set())
-
-    def test_remove(self):
-        to_remove: str = 'first'
-        self.compare_to.remove(to_remove)
-        self.li.remove(to_remove)
-        self.assertSetEqual(self.li, self.compare_to)
-        self.assertSetEqual(self.li.removed, set((to_remove)))
-        self.assertSetEqual(self.li.added, self.compare_to)
-
-    def test_clear(self):
-        self.li.clear()
-        self.assertSetEqual(self.li, set())
-        self.assertSetEqual(self.li.removed, self.compare_to)
-
-    def test_difference_update(self):
-        pass
-
-    def test_discard(self):
-        pass
-
-    def test_intersection_update(self):
-        pass
-
-    def test_symmetric_difference_update(self):
-        pass
-
-    def test_pop(self):
-        pass
-
-    def test_update(self):
-        pass
+@pytest.fixture
+def test_tracked_set():
+    return ds.TrackedSet(ARG)
 
 
+def test_add(test_set: Set[str], test_tracked_set: Set[str]) -> None:
+    assert test_set == test_tracked_set
+    assert test_set == test_tracked_set.added
+    assert set() == test_tracked_set.removed
 
+def test_remove(test_set: Set[str], test_tracked_set: Set[str]) -> None:
+    to_remove: str = 'first'
+    test_set.remove(to_remove)
+    test_tracked_set.remove(to_remove)
+    assert test_set == test_tracked_set
+    assert set() == test_tracked_set.removed
+    assert test_set == test_tracked_set.added
+
+def test_clear(test_set: Set[str], test_tracked_set: Set[str]) -> None:
+    test_tracked_set.clear()
+    assert test_tracked_set == set()
+    assert test_tracked_set.removed == test_set
+
+def test_difference_update(test_set: Set[str], test_tracked_set: Set[str]) -> None:
+    pass
+
+def test_discard(test_set: Set[str], test_tracked_set: Set[str]) -> None:
+    pass
+
+def test_intersection_update(test_set: Set[str], test_tracked_set: Set[str]) -> None:
+    pass
+
+def test_symmetric_difference_update(test_set: Set[str], test_tracked_set: Set[str]) -> None:
+    pass
+
+def test_pop(test_set: Set[str], test_tracked_set: Set[str]) -> None:
+    pass
+
+def test_update(test_set: Set[str], test_tracked_set: Set[str]) -> None:
+    pass

@@ -18,89 +18,61 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import unittest
+import copy
+import pytest
 import numpy as np
 
-from .. import coordinate
+from vladutils import coordinate
 
 
-class CoordinateTest(unittest.TestCase):
-    def create_coord(self):
-        return coordinate.Coordinate(um=(5., 6))
+@pytest.fixture
+def coord():
+    return coordinate.Coordinate(um=(5., 6))
 
-    def test_create(self):
-        self.assertTrue(self.create_coord())
+def test_conversion(coord):
+    assert all(coord['nm'])
 
-    def test_conversion(self):
-        coord = self.create_coord()
-        # print("coord['nm']: {}".format(coord['nm']))
-        # print("coord keys: {}".format(", ".join(coord.keys())))
-        self.assertTrue(all(coord['nm']))
+def test_get_pixelsize(coord):
+    assert coord.pixelsize is None
+    coord['px'] = np.array((5, 6))
+    assert all(coord.pixelsize)
 
-    def test_get_pixelsize(self):
-        coord = self.create_coord()
-        self.assertFalse(coord.pixelsize)
-        coord['px'] = np.array((5, 5))
-        self.assertTrue(all(coord.pixelsize))
+def test_set_pixelsize_with_float(coord):
+    # setting pixelsize to a number
+    print(coord)
+    coord.pixelsize = 100.
+    assert all(coord['px'] == np.array([50, 60]))
 
-    def test_set_pixelsize(self):
-        # setting pixelsize to a number
-        coord = self.create_coord()
-        coord.pixelsize = 100.
-        # print('pixelsize: {}'.format(coord.pixelsize))
-        # print('length: {}'.format(len(coord)))
-        # print('coord: {}'.format(coord))
-        self.assertTrue(all(coord['px'] == np.array([50, 60])))
+def test_set_pixelsize_with_array(coord):
+    coord.pixelsize = [20, 20]
+    assert all(coord['px'] == np.array([250, 300]))
 
-        # setting pixelsize to an array
-        coord = self.create_coord()
-        coord.pixelsize = [20, 20]
-        self.assertTrue(all(coord['px'] == np.array([250, 300])))
+def test_set_pixelsize_with_coordinate(coord):
+    coord.pixelsize = coordinate.Coordinate(nm=(50, 60))
+    assert all(coord['px'] == np.array([100., 100.]))
 
-        # setting pixelsize to a Coordinate
-        coord = self.create_coord()
-        coord.pixelsize = coordinate.Coordinate(nm=(50, 50))
+def test_equal(coord):
+    coord1 = copy.deepcopy(coord)
+    coord2 = copy.deepcopy(coord)
+    assert all(coord1 == coord2)
+    assert coordinate.Coordinate(nm=1000.) == coordinate.Coordinate(um=1.)
 
-    def test_equal(self):
-        coord1 = self.create_coord()
-        coord2 = self.create_coord()
-        # print('coord1: {}'.format(coord1))
-        # print('coord2: {}'.format(coord2))
-        # print('equal: {}'.format(coord1 == coord2))
-        self.assertTrue(all(coord1 == coord2))
-        self.assertTrue(
-            coordinate.Coordinate(nm=1000.) == coordinate.Coordinate(um=1.))
+def test_sum(coord):
+    intended_result = coordinate.Coordinate(um=(7., 6.))
+    start_coord = coord
+    to_add = coordinate.Coordinate(um=(2., 0.))
+    result = start_coord + to_add
+    assert np.all(intended_result == result)
 
-    def test_sum(self):
-        intended_result = coordinate.Coordinate(um=(7., 6.))
-        start_coord = coordinate.Coordinate(um=(5., 6.))
-        to_add = coordinate.Coordinate(um=(2., 0.))
-        result = start_coord + to_add
-        self.assertTrue(np.all(intended_result == result))
-        # print('\n')
-        # print("test_sum still has errors")
-        # print("result         : {}".format(result))
-        # print("intended result: {}".format(intended_result))
-        # setting to_add = Coordinate(um=(0., 0.)) returns [True, True]
-        # print("intended_result == result: {}".format(intended_result == result))
+def test_mul(coord):
+    intended_result = coordinate.Coordinate(um=(10., 12))
+    start_coord = coord
+    n = 2
+    assert all(start_coord * n == intended_result)
+    assert all(start_coord * np.array((n, n)) == intended_result)
 
-    def test_mul(self):
-        intended_result = coordinate.Coordinate(um=(10., 12))
-        start_coord = self.create_coord()
-        n = 2
-        self.assertTrue(all(start_coord * n == intended_result))
-        self.assertTrue(all(start_coord * np.array((n, n)) == intended_result))
-
-    def test_divide(self):
-        intended_result = coordinate.Coordinate(um=(2.5, 3.))
-        start_coord = self.create_coord()
-        self.assertTrue(all(start_coord / 2. == intended_result))
-        self.assertTrue(all(start_coord / [2., 2] == intended_result))
-
-
-def run():
-    pass
-
-
-if __name__ == '__main__':
-    run()
+def test_divide(coord):
+    intended_result = coordinate.Coordinate(um=(2.5, 3.))
+    start_coord = coord
+    assert all(start_coord / 2. == intended_result)
+    assert all(start_coord / [2., 2] == intended_result)
