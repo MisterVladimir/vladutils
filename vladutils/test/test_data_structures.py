@@ -1,74 +1,93 @@
 # -*- coding: utf-8 -*- 
-"""
-@author: Vladimir Shteyn
-@email: vladimir.shteyn@googlemail.com
-
-Copyright Vladimir Shteyn, 2018
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-import copy
+from enum import IntFlag, auto
 import pytest
-from typing import Set
+from typing import List, Set
 
 from vladutils import data_structures as ds
 
 
-ARG = ('first', 'second', 'third')
+# setting up constants
+class ExampleFlag(IntFlag):
+    FIRST = auto()
+    SECOND = auto()
+    THIRD = auto()
+
+
+ARGS = ['first', 'second', 'third']
+EXAMPLE_ENUM_DICT_KEYS = [
+    ExampleFlag.FIRST, ExampleFlag.SECOND, ExampleFlag.THIRD]
 
 
 @pytest.fixture
-def test_set():
-    return set(ARG)
+def example_set():
+    return set(ARGS)
+
 
 @pytest.fixture
-def test_tracked_set():
-    return ds.TrackedSet(ARG)
+def example_tracked_set():
+    return ds.TrackedSet(ARGS)
 
 
-def test_add(test_set: Set[str], test_tracked_set: Set[str]) -> None:
-    assert test_set == test_tracked_set
-    assert test_set == test_tracked_set.added
-    assert set() == test_tracked_set.removed
+@pytest.fixture
+def example_enum_dict():
+    return ds.EnumDict(zip(EXAMPLE_ENUM_DICT_KEYS, ARGS))
 
-def test_remove(test_set: Set[str], test_tracked_set: Set[str]) -> None:
-    to_remove: str = 'first'
-    test_set.remove(to_remove)
-    test_tracked_set.remove(to_remove)
-    assert test_set == test_tracked_set
-    assert set() == test_tracked_set.removed
-    assert test_set == test_tracked_set.added
 
-def test_clear(test_set: Set[str], test_tracked_set: Set[str]) -> None:
-    test_tracked_set.clear()
-    assert test_tracked_set == set()
-    assert test_tracked_set.removed == test_set
+class TestTrackedSet(object):
+    def test_add(self, example_set: Set[str], example_tracked_set: Set[str]) -> None:
+        assert example_set == example_tracked_set
+        assert example_set == example_tracked_set.added
+        assert set() == example_tracked_set.removed
 
-def test_difference_update(test_set: Set[str], test_tracked_set: Set[str]) -> None:
-    pass
+    def test_remove(self, example_set: Set[str], example_tracked_set: Set[str]) -> None:
+        to_remove: str = 'first'
+        example_set.remove(to_remove)
+        example_tracked_set.remove(to_remove)
+        assert example_set == example_tracked_set
+        assert set() == example_tracked_set.removed
+        assert example_set == example_tracked_set.added
 
-def test_discard(test_set: Set[str], test_tracked_set: Set[str]) -> None:
-    pass
+    def test_clear(self, example_set: Set[str], example_tracked_set: Set[str]) -> None:
+        example_tracked_set.clear()
+        assert example_tracked_set == set()
+        assert example_tracked_set.removed == example_set
 
-def test_intersection_update(test_set: Set[str], test_tracked_set: Set[str]) -> None:
-    pass
+    def test_difference_update(self, example_set: Set[str], example_tracked_set: Set[str]) -> None:
+        pass
 
-def test_symmetric_difference_update(test_set: Set[str], test_tracked_set: Set[str]) -> None:
-    pass
+    def test_discard(self, example_set: Set[str], example_tracked_set: Set[str]) -> None:
+        pass
 
-def test_pop(test_set: Set[str], test_tracked_set: Set[str]) -> None:
-    pass
+    def test_intersection_update(self, example_set: Set[str], example_tracked_set: Set[str]) -> None:
+        pass
 
-def test_update(test_set: Set[str], test_tracked_set: Set[str]) -> None:
-    pass
+    def test_symmetric_difference_update(self, example_set: Set[str], example_tracked_set: Set[str]) -> None:
+        pass
+
+    def test_pop(self, example_set: Set[str], example_tracked_set: Set[str]) -> None:
+        pass
+
+    def test_update(self, example_set: Set[str], example_tracked_set: Set[str]) -> None:
+        pass
+
+
+class TestEnumDict(object):
+    def test_get_item(self, example_enum_dict) -> None:
+        assert example_enum_dict[ExampleFlag.FIRST] == [ARGS[0]]
+        assert example_enum_dict[ExampleFlag.SECOND] == [ARGS[1]]
+
+        first_and_second_flag = ExampleFlag.FIRST | ExampleFlag.SECOND
+        assert example_enum_dict[first_and_second_flag] == ARGS[:2]
+
+    def test_set_item(self, example_enum_dict) -> None:
+        new_first: str = 'first changed'
+        example_enum_dict[ExampleFlag.FIRST] = new_first
+        assert example_enum_dict[ExampleFlag.FIRST] == [new_first, ]
+
+        # test resetting multiple items
+        first_and_second_flag = ExampleFlag.FIRST | ExampleFlag.SECOND
+        new_first_and_second: str = 'new first and second'
+        example_enum_dict[first_and_second_flag] = new_first_and_second
+        assert example_enum_dict[first_and_second_flag] == [
+            new_first_and_second, new_first_and_second]
+

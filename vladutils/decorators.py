@@ -26,7 +26,8 @@ def create_dispatcher(n):
     def decorator(func):
         """
         Decorator for function/method overloading based on argument at position
-        n instead of 0, or at keyword n like functools.singledispatch.
+        n instead of 0, or at keyword n. This is basically a more flexible
+        version of functools.singledispatch.
 
         Similar to
 
